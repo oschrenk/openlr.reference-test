@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The encoder type encloses all configuration parameters for the OpenLR encoder. -->
+<p:OpenLREncoderProperties xmlns:p="http://www.example.org/OpenLREncoderProperties/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/OpenLREncoderProperties/    properties/OpenLREncoderProperties.xsd ">
+	<!-- Defines the distance between the first and second point being used for bearing calculation.
+	   The value is measured in meters and determined along the line geometry.  -->
+	<BearingDistance>20</BearingDistance>
+	<!-- Defines the maximum distance between two subsequent location reference points.  -->
+	<MaximumDistanceLRP>15000</MaximumDistanceLRP>
+	<!-- Enables/Disables the check for turn restrictions along the location path.  -->
+	<CheckTurnRestrictions>false</CheckTurnRestrictions>
+</p:OpenLREncoderProperties>
