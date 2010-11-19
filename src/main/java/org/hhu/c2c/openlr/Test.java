@@ -6,16 +6,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import openlr.encoder.Location;
-import openlr.encoder.LocationReference;
+import openlr.Location;
+import openlr.LocationReference;
+import openlr.LocationReferencePoint;
+import openlr.OpenLRRuntimeException;
+import openlr.encoder.LocationFactory;
+import openlr.encoder.LocationReferenceHolder;
 import openlr.encoder.OpenLREncoder;
-import openlr.encoder.data.LocRefPoint;
-import openlr.encoder.properties.OpenLRPropertiesException;
-import openlr.encoder.properties.generated.OpenLREncoderProperties;
 import openlr.map.Line;
 import openlr.map.MapDatabase;
 import openlr.map.teleatlas.sqlite.impl.LineImpl;
 import openlr.map.teleatlas.sqlite.impl.MapDatabaseImpl;
+
+import org.ibex.nestedvm.util.Seekable.ByteArray;
 
 public class Test {
 
@@ -51,16 +54,17 @@ public class Test {
 
 		// instantiate Location object without offsets
 		// PAIN why do I have name locations?
-		Location location = new Location("Location-1", path);
+		Location location = LocationFactory.createLineLocation("Location-1", path);
 
 		// prepare encoding result object
-		LocationReference locRef = null;
+		LocationReferenceHolder locRef = null;
 
 		try {
 			// PAIN what about convention over configuration?
 			// PAIN throws OpenLRPropertiesException
 			// PAIN throws FileNotFoundException
 			// PAIN inputstream as only way to inject properties?
+			// PAIN create object that can be passed arround instead of static access
 			// java.util.Properties perhaps?
 			locRef = OpenLREncoder.encodeLocation(new FileInputStream(this
 					.getClass().getResource(ENCODER_PROPERTIES).getFile()),
@@ -69,7 +73,7 @@ public class Test {
 			// encoder properties file not found
 			e.printStackTrace();
 			System.exit(2);
-		} catch (OpenLRPropertiesException e) {
+		} catch (OpenLRRuntimeException e) {
 			// accessing encoder properties failed
 			e.printStackTrace();
 			System.exit(3);
@@ -79,36 +83,26 @@ public class Test {
 		// PAIN should throw an unchecked OpenLREncodingException
 		if (!locRef.isValid()) {
 			// location reference is not valid, print out error code
-			System.out.println("error code: "
-					+ locRef.getException().getErrorType());
+
 		} else {
 			// location reference is valid, print out the size in bytes
-			System.out.println("size [bytes]: " + locRef.getBinary().length);
+			LocationReference lr = locRef.getLocationReference("binary");
+			ByteArray ba = (ByteArray) lr.getLocationReferenceData();
+			System.out.println("size [bytes]: " + ba.length());
 		}
 
-		List<LocRefPoint> lrps = locRef.getLRPs();
+		// PAIN
+		List<? extends LocationReferencePoint> lrps = locRef.getLRPs();
 
-		Iterator<LocRefPoint> iter = lrps.iterator();
-
-		// PAIN if there is OpenLREncoderProperties
-		// why can't it be used for encodeLocation()?
-		OpenLREncoderProperties op = new OpenLREncoderProperties();
+		// PAIN
+		Iterator<? extends LocationReferencePoint> iter = lrps.iterator();
 
 		while (iter.hasNext()) {
-			LocRefPoint lrp = iter.next();
-			try {
-				// PAIN get Bearing needs properties?
-				lrp.getBearing(op);
+			LocationReferencePoint lrp = iter.next();
+			lrp.getBearing();
 
-				// PAIN call the method getDistanceTo
-				// PAIN distanceToNEXT shouldn't use another LocRefPoint
-				// lrp.getDistanceToNext(null)
-
-				// PAIN throws OpenLRPropertiesException
-			} catch (OpenLRPropertiesException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// PAIN call the method getDistanceTo
+			lrp.getDistanceToNext();
 		}
 	}
 }
